@@ -1,0 +1,105 @@
+Install package 
+
+flutter pub get
+
+code:
+
+
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: ApiPage(),
+    );
+  }
+}
+
+class ApiPage extends StatefulWidget {
+  const ApiPage({super.key});
+
+  @override
+  State<ApiPage> createState() => _ApiPageState();
+}
+
+class _ApiPageState extends State<ApiPage> {
+
+  List data = [];
+  bool isLoading = true;
+  String errorMessage = '';
+
+  // Fetch API Data
+  Future<void> fetchData() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://jsonplaceholder.typicode.com/posts',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+
+        setState(() {
+          data = result;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage = 'Failed to load data';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Something went wrong';
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('API Data'),
+        backgroundColor: Colors.blue,
+      ),
+
+      body: isLoading
+          ? const Center(
+              child: Text('Loading...'),
+            )
+
+          : errorMessage.isNotEmpty
+              ? Center(child: Text(errorMessage))
+
+              : ListView.builder(
+                  itemCount: data.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(data[index]['title']),
+                    );
+                  },
+                ),
+    );
+  }
+}
+
+
